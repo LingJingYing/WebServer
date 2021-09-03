@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <cxxabi.h>
 
 namespace ljy{
 
@@ -20,6 +21,41 @@ pid_t GetThreadId();
  */
 uint32_t GetFiberId();
 
+/**
+ * @brief 获取当前的调用栈
+ * @param[out] bt 保存调用栈
+ * @param[in] size 最多返回层数
+ * @param[in] skip 跳过栈顶的层数
+ */
+void Backtrace(std::vector<std::string>& bt, int size = 64, int skip = 1);
+
+/**
+ * @brief 获取当前栈信息的字符串
+ * @param[in] size 栈的最大层数
+ * @param[in] skip 跳过栈顶的层数
+ * @param[in] prefix 栈信息前输出的内容
+ */
+std::string BacktraceToString(int size = 64, int skip = 2, const std::string& prefix = "");
+
+
+template<class T>
+const std::string TypeToName() {
+    char* s_name = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
+    std::string s(s_name);
+    free(static_cast<void*>(s_name));
+    return s;
+}
+
+class StackAllocator {
+public:
+    static void* Alloc(size_t size) {
+        return malloc(size);
+    }
+
+    static void Dealloc(void* vp, size_t size) {
+        return free(vp);
+    }
+};
 
 class FSUtil {
 public:

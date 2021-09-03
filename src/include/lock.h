@@ -2,6 +2,7 @@
 #define __LJY_LOCK_H__
 
 #include <pthread.h>
+#include <semaphore.h>
 
 #include "noncopyable.h"
 
@@ -288,16 +289,31 @@ private:
     pthread_spinlock_t m_mutex;
 };
 
+class Semaphore : Noncopyable {
+public:
+    /**
+     * @brief 构造函数
+     * @param[in] count 信号量值的大小
+     */
+    Semaphore(uint32_t count = 0);
 
+    /**
+     * @brief 析构函数
+     */
+    ~Semaphore();
 
+    /**
+     * @brief 获取信号量
+     */
+    void wait();
 
-
-
-
-
-
-
-
+    /**
+     * @brief 释放信号量
+     */
+    void notify();
+private:
+    sem_t m_semaphore;
+};
 
 
 

@@ -12,12 +12,13 @@
 #include "singleton.h"
 #include "lock.h"
 #include "util.h"
+#include "thread.h"
 
 #define LJY_LOG_LEVEL(logger, level) \
     if(logger->getLevel() <= level) \
         ljy::LogEventWrap(logger, ljy::LogEvent::ptr(new ljy::LogEvent(level, logger->getName(),\
                         __FILE__, __FUNCTION__, __LINE__, 0, ljy::GetThreadId(),\
-                /*ljy::GetFiberId()*/0, time(0) /*ljy::Thread::GetName()*/))).getSS()
+                /*ljy::GetFiberId()*/0, time(0), ljy::Thread::GetName()))).getSS()
 
 /**
  * @brief 使用流式方式将日志级别debug的日志写入到logger
@@ -51,7 +52,7 @@
     if(logger->getLevel() <= level) \
         ljy::LogEventWrap(logger, ljy::LogEvent::ptr(new ljy::LogEvent(level, logger->getName(),\
                         __FILE__, __FUNCTION__, __LINE__, 0, ljy::GetThreadId(),\
-                /*ljy::GetFiberId()*/0, time(0) /*ljy::Thread::GetName()*/))).getEvent()->format(fmt, __VA_ARGS__)
+                /*ljy::GetFiberId()*/0, time(0), ljy::Thread::GetName()))).getEvent()->format(fmt, __VA_ARGS__)
 
 /**
  * @brief 使用格式化方式将日志级别debug的日志写入到logger
@@ -255,7 +256,7 @@ public:
 
     virtual void log(LogEvent::ptr event) = 0;
 
-    //virtual std::string toYamlString() = 0;
+    virtual std::string toYamlString() = 0;
 
     void setFormatter(LogFormatter::ptr val);
 
@@ -271,7 +272,7 @@ protected:
     //日志级别
     LogLevel::Level m_level;  
     //是否有自己的日志格式器
-    bool m_validFormatter;
+    bool m_ownFormatter;
     //锁
     MutexType m_mutex;
     //日志格式器
@@ -282,7 +283,7 @@ class StdoutLogAppender : public LogAppender {
 public:
     typedef std::shared_ptr<StdoutLogAppender> ptr;
     void log(LogEvent::ptr event) override;
-    //std::string toYamlString() override;
+    std::string toYamlString() override;
 };
 
 /**
@@ -293,7 +294,7 @@ public:
     typedef std::shared_ptr<FileLogAppender> ptr;
     FileLogAppender(const std::string& filename);
     void log(LogEvent::ptr event) override;
-    //std::string toYamlString() override;
+    std::string toYamlString() override;
 
     /**
      * @brief 重新打开日志文件
@@ -337,6 +338,8 @@ public:
     void setFormatter(const std::string& val);
 
     LogFormatter::ptr getFormatter();
+
+    std::string toYamlString();
 
 private:
     //日志名称

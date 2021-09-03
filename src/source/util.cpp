@@ -1,16 +1,105 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <sstream>
+#include <execinfo.h>
+#include "log.h"
 #include "util.h"
 
 
 namespace ljy{
 
+static Logger::ptr g_logger = LJY_LOG_NAME("system");
+
 pid_t GetThreadId() {
     return syscall(SYS_gettid);
+}
+
+static std::string demangle(const char* str) {
+    size_t size = 0;
+    int status = 0;
+    std::string rt;
+    rt.resize(256);
+    if(1 == sscanf(str, "%*[^(]%*[^_]%255[^)+]", &rt[0])) {
+        char* v = abi::__cxa_demangle(&rt[0], nullptr, &size, &status);//获取完整的类型名称
+        if(v) {
+            std::string result(v);
+            free(v);
+            return result;
+        }
+    }
+    if(1 == sscanf(str, "%255s", &rt[0])) {
+        return rt;
+    }
+    return str;
+}
+
+void Backtrace(std::vector<std::string>& bt, int size, int skip) {
+    void** array = (void**)malloc((sizeof(void*) * size));
+    size_t s = ::backtrace(array, size);
+
+    char** strings = backtrace_symbols(array, s);
+    if(strings == NULL) {
+        LJY_LOG_ERROR(g_logger) << "backtrace_synbols error";
+        return;
+    }
+
+    for(size_t i = skip; i < s; ++i) {
+        bt.push_back(demangle(strings[i]));
+    }
+
+    free(strings);
+    free(array);
+}
+
+std::string BacktraceToString(int size, int skip, const std::string& prefix) {
+    std::vector<std::string> bt;
+    Backtrace(bt, size, skip);
+    std::stringstream ss;
+    for(size_t i = 0; i < bt.size(); ++i) {
+        ss << prefix << bt[i] << std::endl;
+    }
+    return ss.str();
+}
+
+
+void FSUtil::ListAllFile(std::vector<std::string>& files
+                            ,const std::string& path
+                            ,const std::string& subfix) {
+    if(access(path.c_str(), 0) != 0) {
+        return;
+    }
+    DIR* dir = opendir(path.c_str());
+    if(dir == nullptr) {
+        return;
+    }
+    struct dirent* dp = nullptr;
+    while((dp = readdir(dir)) != nullptr) {
+        if(dp->d_type == DT_DIR) {
+            if(!strcmp(dp->d_name, ".")
+                || !strcmp(dp->d_name, "..")) {
+                continue;
+            }
+            ListAllFile(files, path + "/" + dp->d_name, subfix);
+        } else if(dp->d_type == DT_REG) {
+            std::string filename(dp->d_name);
+            if(subfix.empty()) {
+                files.push_back(path + "/" + filename);
+            } else {
+                if(filename.size() < subfix.size()) {
+                    continue;
+                }
+                if(filename.substr(filename.length() - subfix.size()) == subfix) {
+                    files.push_back(path + "/" + filename);
+                }
+            }
+        }
+    }
+    closedir(dir);
 }
 
 
