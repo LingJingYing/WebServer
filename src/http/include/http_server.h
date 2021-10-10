@@ -3,7 +3,7 @@
 
 #include "tcp_server.h"
 #include "http_session.h"
-//#include "servlet.h"
+#include "servlet.h"
 
 namespace ljy {
 namespace http {
@@ -30,21 +30,21 @@ public:
     /**
      * @brief 获取ServletDispatch
      */
-    //ServletDispatch::ptr getServletDispatch() const { return m_dispatch;}
+    ServletDispatch::ptr getServletDispatch() const { return m_dispatch;}
 
     /**
      * @brief 设置ServletDispatch
      */
-    //void setServletDispatch(ServletDispatch::ptr v) { m_dispatch = v;}
+    void setServletDispatch(ServletDispatch::ptr v) { m_dispatch = v;}
 
-    //virtual void setName(const std::string& v) override;
+    virtual void setName(const std::string& v) override;
 protected:
     virtual void handleClient(Socket::ptr client) override;
 private:
     /// 是否支持长连接
     bool m_isKeepalive;
     /// Servlet分发器
-    //ServletDispatch::ptr m_dispatch;
+    ServletDispatch::ptr m_dispatch;
 };
 
 }

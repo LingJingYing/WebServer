@@ -22,7 +22,10 @@ file(GLOB_RECURSE LIB_SRC src/base/source/*.cpp src/http/source/*.cpp src/stream
 
 ragelmaker(src/http/source/http11_parser.rl LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/http/source)
 ragelmaker(src/http/source/httpclient_parser.rl LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/http/source)
+ragelmaker(src/base/source/uri.rl LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/base/source)
+
 #message(WARNING ${LIB_SRC})
+find_package(Boost REQUIRED)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
@@ -30,6 +33,11 @@ endif()
 find_package(OpenSSL REQUIRED)
 if(OPENSSL_FOUND)
     include_directories(${OPENSSL_INCLUDE_DIR})
+endif()
+
+find_package(ZLIB REQUIRED)
+if(ZLIB_FOUND)
+    include_directories(${ZLIB_INCLUDE_DIR})
 endif()
 #set(LIB_SRC
 #    src/source/log.cpp
@@ -52,6 +60,7 @@ set(LIBS
         pthread
         yaml-cpp
         ${OPENSSL_LIBRARIES}
+        ${ZLIB_LIBRARIES}
         
 )
 
@@ -118,3 +127,11 @@ target_link_libraries(test_http_server ${LIBS})
 add_executable(test_http_client test/test_http_client.cpp)
 add_dependencies(test_http_client ${DEPEND_LIBS})
 target_link_libraries(test_http_client ${LIBS})
+
+add_executable(test_http_connection test/test_http_connection.cpp)
+add_dependencies(test_http_connection ${DEPEND_LIBS})
+target_link_libraries(test_http_connection ${LIBS})
+
+add_executable(sp_http_server samples/sp_http_server.cpp)
+add_dependencies(sp_http_server ${DEPEND_LIBS})
+target_link_libraries(sp_http_server ${LIBS})

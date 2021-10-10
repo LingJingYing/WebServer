@@ -34,7 +34,7 @@ Fiber::Fiber()
 
     ++st_fiber_count; //协程计数
 
-    LJY_LOG_DEBUG(g_logger) << "main Fiber";
+    LJY_LOG_INFO(g_logger) << "main Fiber ：" << this;
 }
 /*
 Fiber::Fiber(std::function<void()> fc, uint32_t stackSize, bool use_caller)
@@ -66,7 +66,7 @@ Fiber::Fiber(std::function<void()> fc, uint32_t stackSize)
     :m_id(++st_fiber_id){
     ++st_fiber_count;
     m_stackSize = (stackSize != 0) ? stackSize : g_fiber_stack_size->getValue();
-
+    
     m_stack = StackAllocator::Alloc(m_stackSize);
     m_fc.swap(fc);
     if(getcontext(&m_ctx)){
@@ -79,7 +79,7 @@ Fiber::Fiber(std::function<void()> fc, uint32_t stackSize)
 
     makecontext(&m_ctx, &Fiber::MainFunc, 0);
 
-    LJY_LOG_DEBUG(g_logger) << "Fiber id = " << m_id;
+    LJY_LOG_DEBUG(g_logger) << "Fiber id = " << m_id << ", m_stackSize = " << m_stackSize;
 }
 Fiber::~Fiber(){
     if(m_stack){
@@ -138,14 +138,18 @@ void Fiber::swapOut(){
 void Fiber::swapIn(){
     SetCurrentFiber(this);
     m_state = EXEC;
+    LJY_ASSERT2(this != st_threadFiber.get(), "error fiber");
     if(swapcontext(&st_threadFiber->m_ctx, &m_ctx)){
+        LJY_LOG_ERROR(g_logger) << errno;
         LJY_ASSERT2(false, "swapcontext");
     }
 }
 
 void Fiber::swapOut(){
     SetCurrentFiber(st_threadFiber.get());
+    LJY_ASSERT2(this != st_threadFiber.get(), "error fiber");
     if(swapcontext(&m_ctx, &st_threadFiber->m_ctx)){
+        LJY_LOG_ERROR(g_logger) << errno;
         LJY_ASSERT2(false, "swapcontext");
     }
 }
@@ -154,7 +158,7 @@ void Fiber::swapOut(){
     s_fiber = f;
  }
 
- Fiber::ptr Fiber::GetCurrentFiber(){
+Fiber::ptr Fiber::GetCurrentFiber(){
      if(s_fiber != nullptr){
          return s_fiber->shared_from_this();
      }
@@ -181,7 +185,7 @@ uint64_t Fiber::GetCurrentFiberID() {
  void Fiber::YieldToHold(){
     Fiber::ptr cur = GetCurrentFiber();
     LJY_ASSERT(cur->m_state == EXEC);
-    cur->m_state = HOLD;
+    //cur->m_state = HOLD;
     cur->swapOut();   
  }
 

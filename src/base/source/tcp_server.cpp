@@ -78,9 +78,9 @@ bool TcpServer::bind(const std::vector<Address::ptr>& addrs
 
 void TcpServer::startAccept(Socket::ptr sock) {
     while(!m_isStop) {
-        LJY_LOG_INFO(g_logger) << "m_isStop:" << m_isStop;
+        LJY_LOG_DEBUG(g_logger) << "m_isStop:" << m_isStop;
         Socket::ptr client = sock->accept();
-        LJY_LOG_INFO(g_logger) << "client:" << client;
+        LJY_LOG_DEBUG(g_logger) << "client:" << client;
         if(client) {
             client->setRecvTimeout(m_recvTimeout);
             m_ioWorker->schedule(std::bind(&TcpServer::handleClient,
@@ -93,7 +93,7 @@ void TcpServer::startAccept(Socket::ptr sock) {
 }
 
 bool TcpServer::start() {
-    LJY_LOG_INFO(g_logger) << "start, m_isStop:" << m_isStop;
+    LJY_LOG_DEBUG(g_logger) << "start, m_isStop:" << m_isStop;
     if(!m_isStop) {
         return true;
     }

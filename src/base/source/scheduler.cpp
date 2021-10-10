@@ -39,6 +39,7 @@ Scheduler::Scheduler(size_t threads, const std::string& name)
     }
 */
     m_threadCount = threads;
+    LJY_LOG_INFO(g_logger) << "m_threadCount = " <<  m_threadCount;
 }
 
 Scheduler::~Scheduler(){
@@ -277,8 +278,10 @@ void Scheduler::run(){
 
             if(ft.fiber->getState() == Fiber::READY){
                 schedule(ft.fiber);//仍需继续执行
+            } else if(ft.fiber->getState() != Fiber::TERM
+                    && ft.fiber->getState() != Fiber::EXCEPT) {
+                ft.fiber->m_state = Fiber::HOLD;//让出运行权限，fiber自己的流程里会重进加入调度，所以处理hold状态时，不需要重新schedule
             }
-            
             ft.reset();
         }
         else if(ft.cb){
@@ -302,6 +305,7 @@ void Scheduler::run(){
                         cb_fiber->reset(nullptr);
             }
             else{
+                cb_fiber->m_state = Fiber::HOLD;
                 cb_fiber.reset();
             }
         }

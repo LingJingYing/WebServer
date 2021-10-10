@@ -116,14 +116,14 @@ bool Socket::setOption(int level, int option, const void* result, socklen_t len)
 
 Socket::ptr Socket::accept() {
     Socket::ptr sock(new Socket(m_family, m_type, m_protocol));
-    LJY_LOG_DEBUG(g_logger) << "accept start";
+    //LJY_LOG_DEBUG(g_logger) << "accept start";
     int newsock = ::accept(m_sock, nullptr, nullptr);//全局accept函数，会将接受到的fd添加到 FdMgr 中
     if(newsock == -1) {
         LJY_LOG_ERROR(g_logger) << "accept(" << m_sock << ") errno="
             << errno << " errstr=" << strerror(errno);
         return nullptr;
     }
-    LJY_LOG_DEBUG(g_logger) << "accept:" << m_sock << " newsock:" << newsock;
+    //LJY_LOG_DEBUG(g_logger) << "accept:" << m_sock << " newsock:" << newsock;
     if(sock->init(newsock)) {
         return sock;
     }
@@ -191,7 +191,7 @@ bool Socket::connect(const Address::ptr addr, uint64_t timeout_ms) {
     m_remoteAddress = addr;
     if(!isValid()) {
         newSock();
-        LJY_LOG_DEBUG(g_logger) << "fd=" << m_sock << ", m_family=" << m_family << ", m_type=" << m_type;
+        //LJY_LOG_DEBUG(g_logger) << "fd=" << m_sock << ", m_family=" << m_family << ", m_type=" << m_type;
         if(LJY_UNLIKELY(!isValid())) {
             return false;
         }
@@ -459,9 +459,9 @@ void Socket::initSock() {
 }
 
 void Socket::newSock() {
-    LJY_LOG_DEBUG(g_logger) << "newSock";
+    //LJY_LOG_DEBUG(g_logger) << "newSock";
     m_sock = socket(m_family, m_type, m_protocol);
-    LJY_LOG_DEBUG(g_logger) << "m_sock=" << m_sock;
+    //LJY_LOG_DEBUG(g_logger) << "m_sock=" << m_sock;
     if(LJY_LIKELY(m_sock != -1)) {
         initSock();
     } else {

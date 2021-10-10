@@ -22,7 +22,7 @@ bool SocketStream::isConnected() const {
 }
 
 int SocketStream::read(void* buffer, size_t length) {
-    LJY_LOG_DEBUG(g_logger) << "read";
+    //LJY_LOG_DEBUG(g_logger) << "read";
     if(!isConnected()) {
         return -1;
     }

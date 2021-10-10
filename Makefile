@@ -4,7 +4,7 @@ LIB_DIR = ./lib
 DEST_EXE_NAME = main
 
 all:
-	@cd $(BUILD_DIR);  make -j4
+	@cd $(BUILD_DIR);  make -j128
 clean/cmake:
 	@rm $(BUILD_DIR)/* -rf
 clean/lib:

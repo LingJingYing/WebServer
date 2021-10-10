@@ -359,7 +359,7 @@ void IOManager::idle() {
             //timeout：指定epoll的超时时间，单位是毫秒。当timeout为-1是，epoll_wait调用将永远阻塞，直到某个时间发生。
             //当timeout为0时，epoll_wait调用将立即返回。
             rt = epoll_wait(m_epfd, events, MAX_EVNETS, (int)next_timeout);//超时的精度是毫秒级的
-            LJY_LOG_INFO(g_logger) << "rt=" << rt << ", next_timeout=" << next_timeout;
+            LJY_LOG_DEBUG(g_logger) << "rt=" << rt << ", next_timeout=" << next_timeout;
             if(rt < 0 && errno == EINTR) {//被信号中断
             } else {
                 break;
@@ -395,7 +395,7 @@ void IOManager::idle() {
             if(event.events & EPOLLOUT) {
                 real_events |= WRITE;
             }
-            LJY_LOG_INFO(g_logger) << " fd_ctx=" << fd_ctx->m_fd << " events=" << event.events << ", real_events=" << real_events;
+            LJY_LOG_DEBUG(g_logger) << " fd_ctx=" << fd_ctx->m_fd << " events=" << event.events << ", real_events=" << real_events;
             if((fd_ctx->m_event & real_events) == NONE) {
                 continue;
             }
